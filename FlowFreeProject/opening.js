@@ -17,7 +17,7 @@ function createLevels(containerId, colorClass) {
         cnt++;
 
         level.addEventListener("click", () => {
-            
+
             console.log("Start level", i);
             goToPage(event.target.id);
         });
@@ -25,6 +25,7 @@ function createLevels(containerId, colorClass) {
         grid.appendChild(level);
     }
 }
+
 function goToPage(id) {
     window.location.href = "game.html?level=" + id;
 }

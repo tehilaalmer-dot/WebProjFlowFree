@@ -13,16 +13,17 @@
 
     <div class="section">
         <h2>5x5 - Easy</h2>
+
         <div class="grid red" id="grid5"></div>
     </div>
 
     <div class="section">
-        <h2>6x6</h2>
+        <h2>7x7 - Medium</h2>
         <div class="grid green" id="grid6"></div>
     </div>
 
     <div class="section">
-        <h2>7x7 - Medium</h2>
+        <h2>9x9 - Hard</h2>
         <div class="grid blue" id="grid7"></div>
     </div>
 
@@ -30,9 +31,25 @@
 <div class="actions">
                 <button type="button" class="main-btn" onclick="logout()">התנתק</button>
 
+
             </div>
-
-
+            <button id="toggle-history-btn" class="floating-btn">📜 היסטוריית משחקים</button>
+<div id="history-sidebar" class="history-sidebar hidden">
+    <h3>היסטוריית משחקים</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>שלב</th>
+                    <th>תאריך</th>
+                    <th>שעה</th>
+                </tr>
+            </thead>
+            <tbody id="history-table-body">
+                </tbody>
+        </table>
+    </div>
+</div>
 <script src="opening.js"></script>
 </body>
 </html>

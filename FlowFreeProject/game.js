@@ -142,6 +142,7 @@ let gameLevels = [
 
 ];
 let size;
+let isDrawing = false;
 if (id <= 5) size = 5;
 else if (id <= 10) size = 7;
 else size = 9;
@@ -173,7 +174,9 @@ for (let i = 0; i < size; i++) {
 for (let colorObj of currentLevel) {
     let { start, end, color } = colorObj;
     cells[start.row][start.col].style.backgroundColor = color;
+    cells[start.row][start.col].style.border = "3px solid black"; 
     cells[end.row][end.col].style.backgroundColor = color;
+    cells[end.row][end.col].style.border = "3px solid black"; 
 }
 let c1 = null, c2 = null;
 
@@ -182,67 +185,155 @@ for (let i = 0; i < gameBoard.children.length; i++) {
     gameBoard.children[i].addEventListener("mouseover", handleMouseEnter);
 
 }
+let seconds = 0;   // המשתנה ששומר את מספר השניות
+let timer = null;  // המשתנה שיחזיק את ה-Interval כדי שנוכל לעצור אותו
+start();
+function start() {
+    // בדיקה שמונעת הפעלה של כמה טיימרים במקביל (שלא ירוץ מהר מדי)
+    if (timer !== null) return; 
+
+    timer = setInterval(() => {
+        seconds++; // הוספת שנייה
+        document.getElementById('seconds-counter').innerText = seconds;
+    }, 1000); // ביצוע הפעולה כל 1000 מילי-שניות (שנייה אחת)
+}
+
+function stop() {
+    clearInterval(timer); // עוצר את הריצה
+    timer = null;         // מאפס את המשתנה כדי שנוכל להפעיל שוב
+}
+
+
+
 function handleMouseDown(event) {
-    if (c1 == null) {
-        if (event.target.style.backgroundColor != "") {
+    const row = parseInt(event.target.dataset.row);
+    const col = parseInt(event.target.dataset.col);
+
+    if (c1 === null) {
+        // בחירת נקודה ראשונה
+        if (event.target.style.backgroundColor !== "" && isPoint(row, col)) {
             c1 = event.target;
-
-
             c1.style.border = "2px solid black";
-
-
+            isDrawing = true;
+           
         }
+    } 
+    else {
+        // בחירת נקודה שניה
+        // 1. האם זו נקודה? האם היא שונה מהראשונה? האם הצבע זהה?
+        if (isPoint(row, col) && event.target !== c1 && event.target.style.backgroundColor === c1.style.backgroundColor) {
 
-    }
-    else if (c2 != null) {
-        const row = parseInt(event.target.dataset.row);
-        const col = parseInt(event.target.dataset.col);
-        if (isPoint(parseInt(row), parseInt(col)) && (row != c1.dataset.row && col != c1.dataset.col) && event.target.style.backgroundColor === c1.style.backgroundColor) {
-            cnt++;
-            event.target.style.border = "2px solid black";
-            if (cnt === currentLevel.length - 1) {
-                alert("winner")
+            if (checkOtherSide(event)) {
+                cnt++;
+                event.target.style.border = "2px solid black";
+                console.log("Path valid! Current count:", cnt);
+
+                if (cnt === currentLevel.length && checkWin()) {
+
+                    addtoHistory();
+                    alert("winner");
+                    stop();
+                    window.location.href = "opening.html";
+                }
+            } else {
+                clearCurrentPath(); // פונקציית עזר לניקוי
             }
-
-
+        } else {
+            clearCurrentPath();
         }
+
+        // איפוס חובה של c1 רק אחרי הניסיון לחיבור
+        if (c1) c1.style.border = "1px solid #ccc";
+        isDrawing = false;
         c1 = null;
+    }
+
+    // ניקוי c2 (התא האחרון מהגרירה)
+    if (c2 != null) {
         c2.style.border = "1px solid #ccc";
         c2 = null;
-
     }
+}
+function checkWin() {
+   for(let i = 0; i < size; i++) {
+       for(let j = 0; j < size; j++) {
+           if (cells[i][j].style.backgroundColor === "" && !isPoint(i, j)) {
+               return false;
+           }
+       }
+   }
+   return true;
+}
 
+// פונקציית עזר לניקוי המסלול של הצבע הנוכחי
+function clearCurrentPath() {
+    if (!c1) return;
+    const colorToClear = c1.style.backgroundColor;
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            if (cells[i][j].style.backgroundColor === colorToClear && !isPoint(i, j)) {
+                cells[i][j].style.backgroundColor = "";
+                cells[i][j].style.border = "1px solid #ccc";
+                let p = cells[i][j].querySelector('.path');
+                if (p) p.remove();
+            }
+        }
+    }
+}
 
+function checkOtherSide(event) {
+    const row = parseInt(event.target.dataset.row);
+    const col = parseInt(event.target.dataset.col);
+    const color = c1.style.backgroundColor;
+
+    // הגדרת 4 השכנים (למעלה, למטה, שמאל, ימין)
+    const neighbors = [
+        [row - 1, col], [row + 1, col],
+        [row, col - 1], [row, col + 1]
+    ];
+
+    for (let [r, c] of neighbors) {
+        // בדיקה שהשכן בכלל קיים במטריצה (לא חורג מהגבולות)
+        if (r >= 0 && r < size && c >= 0 && c < size) {
+            // בדיקה אם השכן צבוע באותו צבע של הקו שהתחלנו
+            if (cells[r][c].style.backgroundColor === color) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 function handleMouseEnter(event) {
 
 
-    let prev = c2 || c1;
+    
     const row = parseInt(event.target.dataset.row);
     const col = parseInt(event.target.dataset.col);
+     isPainted(row, col);
+     let prev = c2 || c1;
 
 
-     
+
     if (checkMove(event.target, prev) && !isPoint(row, col)) {
         if (c1 != null) {
 
-          
-             isPainted(row, col);
-             if (event.target.style.backgroundColor === "" || isPoint(row, col)) {
-            c2 = event.target;
-            c2.style.border = "2px solid black";
-           
-            event.target.style.backgroundColor = c1.style.backgroundColor;
-            c2.classList.add("cell-filled"); // מפעיל את ה-Glow מה-CSS הקודם
 
-            // 2. יצירת אפקט ה-Path (הקו שצומח)
-            const path = document.createElement("div");
-            path.className = "path visible";
-            path.style.backgroundColor = c1.style.backgroundColor;
-            
-            c2.appendChild(path);
+           
+            if (event.target.style.backgroundColor === "" || isPoint(row, col)) {
+                c2 = event.target;
+                c2.style.border = "2px solid black";
+
+                event.target.style.backgroundColor = c1.style.backgroundColor;
+                c2.classList.add("cell-filled"); // מפעיל את ה-Glow מה-CSS הקודם
+
+                // 2. יצירת אפקט ה-Path (הקו שצומח)
+                const path = document.createElement("div");
+                path.className = "path visible";
+                path.style.backgroundColor = c1.style.backgroundColor;
+
+                c2.appendChild(path);
+            }
         }
-    }
     }
 
 
@@ -250,17 +341,6 @@ function handleMouseEnter(event) {
 }
 
 
-// function checkStep() {
-
-// }
-// function checkWin() {
-//     for (let colorObj of currentLevel) {
-//         let { end, color } = colorObj;
-//         if (cells[end.row][end.col].style.backgroundColor != color)
-//             return false;
-//     }
-//     return true;
-// }
 function checkMove(target1, c3) {
 
     let p1, p2;
@@ -322,70 +402,71 @@ function isPoint(i, j) {
     }
     return false;
 }
-// function isPainted(i, j) {
-//     if (cells[i][j].style.backgroundColor === c2.style.backgroundColor) {
-//         cells[i][j].style.backgroundColor = "";
-//     }
-//     else {
-//         if (cells[i][j].style.backgroundColor != "") {
-//             let color1 = cells[i][j].style.backgroundColor;
-//             for (let ind = 0; ind < size; ind++) {
-//                 for (let cind = 0; cind < size; cind++) {
-//                     if (cells[ind][cind].style.backgroundColor === color1) {
-//                         cells[ind][cind].style.backgroundColor = "";
-//                         let path = cells[ind][cind].querySelector('.path');
-//                     if (path) {
-//                         path.remove(); 
-//                     }
-                    
-//                     // 3. החזרת הגבול למצב רגיל
-//                     cells[ind][cind].style.border = "1px solid #ccc";
-//                         cnt--;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
+function addtoHistory() {
+    let users = JSON.parse(localStorage.getItem("users")) || {};
+    let currentUserEmail = sessionStorage.getItem("currentUser");
+    if (users[currentUserEmail]) {
+        let userData = users[currentUserEmail];
+        userData.history.push({ level: id, date: new Date().toISOString() });
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+}
 function isPainted(i, j) {
     let targetCell = cells[i][j];
-    let currentColor = c1.style.backgroundColor;
+    let currentColor="";
+    if(!c1&&!isDrawing)    return;
+    if(c1!=null)
+     {
+        currentColor = c1.style.backgroundColor;
 
-    // מקרה 1: עלינו על צבע אחר (מה ששאלת קודם) - מוחק את כל המסלול האחר
+     } 
+
+    // מקרה 1: עלינו על צבע אחר - מוחק את כל המסלול האחר
     if (targetCell.style.backgroundColor !== "" && targetCell.style.backgroundColor !== currentColor) {
         let colorToClear = targetCell.style.backgroundColor;
         for (let r = 0; r < size; r++) {
             for (let c = 0; c < size; c++) {
                 if (cells[r][c].style.backgroundColor === colorToClear && !isPoint(r, c)) {
+                   
                     cells[r][c].style.backgroundColor = "";
                     cells[r][c].style.border = "1px solid #ccc";
                     let path = cells[r][c].querySelector('.path');
                     if (path) path.remove();
-                   
+
                 }
             }
         }
-         cnt--;
+        cnt--;
     }
 
-    // מקרה 2: עלינו על אותו צבע של המסלול הנוכחי (תיקון מסלול)
-    // אם התא כבר צבוע בצבע שלנו והוא לא נקודת ההתחלה
-    else if (targetCell.style.backgroundColor === currentColor && !isPoint(i, j)) {
-        // מוחקים את הצבע והעיצוב מהתא הזה כדי "לפנות" אותו
-        targetCell.style.backgroundColor = "";
-        targetCell.style.border = "1px solid #ccc";
-        let path = targetCell.querySelector('.path');
-        if (path) path.remove();
-        
-        // כאן אפשר להוסיף לוגיקה שתעדכן את c2 להיות התא הקודם ברצף
+   
+  // מקרה 2: עלינו על אותו צבע (חזרה אחורה)
+else if (targetCell.style.backgroundColor === currentColor) {
+   
+    if (targetCell === c1) {
+       
+        if (c2 && !isPoint(parseInt(c2.dataset.row), parseInt(c2.dataset.col))) {
+            clearCell(c2);
+           
+        }
+        c2 = null; 
+         
+    }
+    
+    // אם חזרנו אחורה למשבצת שהיא לא c1 אבל היא בתוך המסלול
+    else if (targetCell !== c2 && !isPoint(i, j)) {
+        if (c2 && !isPoint(parseInt(c2.dataset.row), parseInt(c2.dataset.col))) {
+            clearCell(c2);
+        }
+        c2 = targetCell; // הקצה החדש הוא המשבצת שחזרנו אליה
     }
 }
-// // for (let row = 0; row < cells.length; row++) {
-// //                 for (let col = 0; col < cells[row].length; col++) {
-// //                     if (cells[row][col].style.backgroundColor == colorObj.color) {//cells[row][col].style.backgroundColor="";
-// //                         cells[row][col].classList.remove("cell-filled");
-// //                     }
-// //                 }
-// //             }
-// --- הגדרות ראשוניות וטעינת שלב ---
-// --- נתוני השלבים ---
+
+
+}
+function clearCell(cell) {
+    cell.style.backgroundColor = "";
+    cell.style.border = "1px solid #ccc";
+    let path = cell.querySelector('.path');
+    if (path) path.remove();
+}

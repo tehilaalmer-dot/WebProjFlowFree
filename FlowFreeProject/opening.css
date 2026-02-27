@@ -130,4 +130,107 @@ h2 {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 210, 255, 0.6);
     filter: brightness(1.1);
+}/* המכולה הראשית בצד ימין */
+.history-sidebar {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%); /* מרכז את הטבלה אנכית */
+    width: 300px;
+    background: rgba(20, 20, 20, 0.9);
+    border: 2px solid #3498db;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    z-index: 1000;
+}
+
+.history-sidebar h3 {
+    text-align: center;
+    margin-top: 0;
+    color: #00d2ff;
+    text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+/* הגדרת הגלגלת */
+.table-wrapper {
+    max-height: 400px; /* גובה מקסימלי לפני שתופיע גלגלת */
+    overflow-y: auto;  /* מאפשר גלגלת אנכית */
+    margin-top: 10px;
+}
+
+/* עיצוב פס הגלילה (Scrollbar) שייראה יפה */
+.table-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 10px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+/* עיצוב הטבלה עצמה */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    position: sticky; /* הכותרת תישאר למעלה בזמן גלילה */
+    top: 0;
+    background: #1a1a1a;
+    color: #bdc3c7;
+    font-size: 0.9rem;
+    padding: 10px;
+}
+
+td {
+    padding: 10px;
+    text-align: center;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #333;
+}
+
+tr:hover {
+    background: rgba(52, 152, 219, 0.1);
+}
+/* הכפתור הצף */
+.floating-btn {
+    position: fixed;
+    right: 20px;
+    bottom: 20px; /* מיקום בפינה הימנית התחתונה */
+    padding: 12px 20px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1001; /* מעל הטבלה */
+}
+
+.floating-btn:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(52, 152, 219, 0.7);
+}
+
+/* מצב שבו הטבלה מוסתרת */
+.history-sidebar.hidden {
+    right: -350px; /* מוציא את הטבלה מחוץ למסך */
+    opacity: 0;
+}
+
+/* הוספת Transition ל-history-sidebar הקיים שלך */
+.history-sidebar {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* תנועה חלקה עם "קפיצה" קלה */
 }
